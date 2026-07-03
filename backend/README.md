@@ -1,4 +1,6 @@
-# User Registration API
+# User Authentication API
+
+This API handles user registration, login, profile access, and logout.
 
 ## `POST /users/register`
 
@@ -72,7 +74,7 @@ User was created successfully.
 }
 ```
 
-The `token` is a JWT signed with `JWT_SECRET` from your environment variables. Use it for authenticated requests.
+The `token` is a JWT signed with `JWT_SECRET` from your environment variables. Use it for authenticated requests. For login, the server also sets a `token` cookie on successful authentication.
 
 > **Note:** The password is excluded from the response (`select: false` on the user model).
 
@@ -120,6 +122,198 @@ May occur if required fields pass route validation but are missing at the servic
 4. User record is created through `userService.createUser()`.
 5. A JWT is generated with `user.generateAuthToken()`.
 6. Response is sent with status `201`, the new user, and the token.
+
+---
+
+## `POST /users/login`
+
+Authenticates an existing user and returns a JWT auth token on success.
+
+**Base URL:** `http://localhost:3000` (or the value of `PORT` in your `.env` file)
+
+### Request
+
+| Property | Value |
+|----------|-------|
+| **Method** | `POST` |
+| **Path** | `/users/login` |
+| **Content-Type** | `application/json` |
+
+### Request body
+
+Send a JSON object with the following fields:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | `string` | Yes | Registered email address. |
+| `password` | `string` | Yes | Password for the account. |
+
+### Example request
+
+```json
+{
+  "email": "john.doe@example.com",
+  "password": "secret123"
+}
+```
+
+### Validation rules
+
+Validation is handled by `express-validator` on the route:
+
+- **email** — must be a valid email format
+- **password** — required, at least 6 characters
+
+### Responses
+
+#### `200 OK`
+
+User was authenticated successfully. The server also sets a `token` cookie for subsequent authenticated requests.
+
+```json
+{
+  "message": "User logged in successfully",
+  "user": {
+    "_id": "665f1a2b3c4d5e6f7a8b9c0d",
+    "fullname": {
+      "firstname": "John",
+      "lastname": "Doe"
+    },
+    "email": "john.doe@example.com"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+#### `400 Bad Request`
+
+Request failed validation. The response includes an `errors` array with details for each invalid field.
+
+```json
+{
+  "errors": [
+    {
+      "type": "field",
+      "value": "bad-email",
+      "msg": "Invalid email address",
+      "path": "email",
+      "location": "body"
+    }
+  ]
+}
+```
+
+#### `401 Unauthorized`
+
+Returned when the email does not exist or the password is incorrect.
+
+```json
+{
+  "message": "Invalid email or password"
+}
+```
+
+#### `500 Internal Server Error`
+
+Returned if authentication fails unexpectedly, such as a database or server error.
+
+---
+
+## `GET /users/profile`
+
+Fetches the authenticated user's profile.
+
+**Base URL:** `http://localhost:3000` (or the value of `PORT` in your `.env` file)
+
+### Request
+
+| Property | Value |
+|----------|-------|
+| **Method** | `GET` |
+| **Path** | `/users/profile` |
+| **Authentication** | Required |
+
+### Authentication
+
+Provide the JWT either:
+
+- via the `token` cookie set by login, or
+- via the `Authorization` header as `Bearer <token>`
+
+### Responses
+
+#### `200 OK`
+
+Returns the authenticated user's profile.
+
+```json
+{
+  "message": "User profile fetched successfully",
+  "user": {
+    "_id": "665f1a2b3c4d5e6f7a8b9c0d",
+    "fullname": {
+      "firstname": "John",
+      "lastname": "Doe"
+    },
+    "email": "john.doe@example.com"
+  }
+}
+```
+
+#### `401 Unauthorized`
+
+Returned when no valid token is provided.
+
+```json
+{
+  "message": "Access denied. Unauthorized."
+}
+```
+
+---
+
+## `GET /users/logout`
+
+Logs the current user out by clearing the auth cookie and blacklisting the active token.
+
+**Base URL:** `http://localhost:3000` (or the value of `PORT` in your `.env` file)
+
+### Request
+
+| Property | Value |
+|----------|-------|
+| **Method** | `GET` |
+| **Path** | `/users/logout` |
+| **Authentication** | Required |
+
+### Authentication
+
+Provide the JWT either:
+
+- via the `token` cookie set by login, or
+- via the `Authorization` header as `Bearer <token>`
+
+### Responses
+
+#### `200 OK`
+
+User was logged out successfully.
+
+```json
+{
+  "message": "User logged out successfully"
+}
+```
+
+#### `401 Unauthorized`
+
+Returned when no valid token is provided.
+
+```json
+{
+  "message": "Access denied. Unauthorized."
+}
+```
 
 ---
 
