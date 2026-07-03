@@ -1,0 +1,22 @@
+{
+  "name": "uber-ride",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "scripts": {
+    "start": "npm start --prefix backend",
+    "dev": "npm run dev --prefix backend",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aditya-singhal-dev/uber-ride.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aditya-singhal-dev/uber-ride/issues"
+  },
+  "homepage": "https://github.com/aditya-singhal-dev/uber-ride#readme"
+}
