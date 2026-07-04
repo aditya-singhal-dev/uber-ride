@@ -317,6 +317,110 @@ Returned when no valid token is provided.
 
 ---
 
+## `POST /captains/register`
+
+Creates a new captain account with vehicle details. The password is hashed before storage, and a JWT auth token is returned on success.
+
+**Base URL:** `http://localhost:3000` (or the value of `PORT` in your `.env` file)
+
+### Request
+
+| Property | Value |
+|----------|-------|
+| **Method** | `POST` |
+| **Path** | `/captains/register` |
+| **Content-Type** | `application/json` |
+
+### Request body
+
+Send a JSON object with the following fields:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | `string` | Yes | Valid email address. Stored in lowercase and must be unique. |
+| `password` | `string` | Yes | Minimum 6 characters. Hashed with bcrypt before saving. |
+| `fullname.firstname` | `string` | Yes | Minimum 3 characters. |
+| `fullname.lastname` | `string` | No | Minimum 3 characters when provided. |
+| `vehicle.color` | `string` | Yes | Minimum 3 characters. |
+| `vehicle.plate` | `string` | Yes | Minimum 3 characters. |
+| `vehicle.capacity` | `number` | Yes | Minimum 1. |
+| `vehicle.vehicleType` | `string` | Yes | Must be one of `car`, `bike`, or `autorikshaw`. |
+
+### Example request
+
+```json
+{
+  "email": "captain@example.com",
+  "password": "secret123",
+  "fullname": {
+    "firstname": "Captain",
+    "lastname": "Doe"
+  },
+  "vehicle": {
+    "color": "white",
+    "plate": "UP14BS9058",
+    "capacity": 4,
+    "vehicleType": "car"
+  }
+}
+```
+
+### Validation rules
+
+Validation is handled by `express-validator` on the route and by the Mongoose schema in the captain model:
+
+- **email** — must be a valid email format
+- **fullname.firstname** — required, at least 3 characters
+- **password** — required, at least 6 characters
+- **vehicle.color** — required, at least 3 characters
+- **vehicle.plate** — required, at least 3 characters
+- **vehicle.capacity** — required, integer, at least 1
+- **vehicle.vehicleType** — must be one of `car`, `bike`, or `autorikshaw`
+
+### Responses
+
+#### `201 Created`
+
+Captain was created successfully.
+
+```json
+{
+  "message": "Captain created successfully",
+  "captain": {
+    "_id": "665f1a2b3c4d5e6f7a8b9c0d",
+    "fullname": {
+      "firstname": "Captain",
+      "lastname": "Doe"
+    },
+    "email": "captain@example.com",
+    "status": "inactive",
+    "vehicle": {
+      "color": "white",
+      "plate": "UP14BS9058",
+      "capacity": 4,
+      "vehicleType": "car"
+    }
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+#### `400 Bad Request`
+
+Returned when validation fails or the email is already registered.
+
+```json
+{
+  "message": "Captain with this email already exists"
+}
+```
+
+#### `500 Internal Server Error`
+
+Returned if the request fails unexpectedly during account creation.
+
+---
+
 ## Environment variables
 
 | Variable | Purpose |

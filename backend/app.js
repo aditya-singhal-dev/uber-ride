@@ -6,6 +6,8 @@ const app = express();
 const connectToDB = require('./db/db'); // Import the connectToDB function from the db.js file, this function is used to connect to the MongoDB database.
 const userRoutes = require('./routes/user.routes');
 const cookieParser = require('cookie-parser'); // Import the cookie-parser middleware, this middleware is used to parse the cookies that are sent from the frontend to the backend.
+const captainRoutes = require('./routes/captain.routes');
+
 
 app.use(cors());
 app.use(express.json());
@@ -17,5 +19,6 @@ app.get('/', (req, res) => {
     res.send('Hello world !!');
 });
 app.use('/users',userRoutes);
+app.use('/captains',captainRoutes);
 
 module.exports = app;
