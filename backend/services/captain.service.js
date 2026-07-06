@@ -14,7 +14,7 @@ module.exports.createCaptain = async ({
         throw new Error('All fields are required');
     }
 
-    const captain = new captainModel({
+    const captain = captainModel.create({
         fullname: {
             firstname,
             lastname
@@ -27,8 +27,8 @@ module.exports.createCaptain = async ({
             capacity,
             vehicleType
         }
-    });
+    })
 
     return captain;
-};
+}
 
