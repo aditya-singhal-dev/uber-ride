@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { motion } from 'framer-motion';
+import axios from 'axios';
+import CaptainDataContext from '../context/CaptainDataContext';
 
-
-const CaptainSignup = () => {
+export const CaptainSignup = () => {
   const navigate = useNavigate();
+  const [, setCaptain ] = useContext(CaptainDataContext)
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,30 +15,52 @@ const CaptainSignup = () => {
   const [LastName, setLastName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [vehicle, setVehicle] = useState({
+  color: '',
+  plate: '',
+  capacity: '',
+  vehicleType: ''
+});
 
-  const submitHandler = (e) => {
-    e.preventDefault();
-    setError('');
+console.log(useContext(CaptainDataContext));
+  const submitHandler = async (e) => {
+    e.preventDefault()
+    setError('')
+    try{
+    const captainData = {
+      fullname: {
+        firstname: firstName,
+        lastname: LastName
+      },
+      email: email,
+      password: password,
+      vehicle: {
+  ...vehicle,
+  capacity: Number(vehicle.capacity),
+  plate: vehicle.plate.toUpperCase().trim()
+}
+    };
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
+    const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/captains/register`, captainData)
+
+    if (response.status === 201) {
+      const data = response.data
+      setCaptain(data.captain)
+      localStorage.setItem('token', data.token)
+      navigate('/captain-home')
+
+       // reset
+        setFirstName('');
+        setLastName('');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        setVehicle('');
     }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
+    }catch(err){
+        setError(err.response?.data?.message || "Please fill in all fields.");
     }
-
-    console.log({ firstName, LastName, email, password });
-
-    setFirstName('');
-    setLastName('');
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
-  };
-
+  }
   const container = {
     hidden: {},
     show: {
@@ -96,17 +120,17 @@ style={{ backgroundImage: "url('/doodle-bg.png')" }}
       variants={container}
       initial="hidden"
       animate="show"
-      className="max-w-md"
+      className="max-wd-md"
     >
-      <motion.h2 variants={item} className="text-3xl font-semibold mb-4">
-        Create an Captain Account
+      <motion.h2 variants={item} className="text-3xl font-semibold mb-2">
+        Create a Captain Account
       </motion.h2>
 
-      <form onSubmit={submitHandler} className="space-y-5">
+      <form onSubmit={submitHandler} className="space-y-1">
 
         {/* Name */}
         <motion.div variants={item}>
-          <p className="text-sm text-gray-600 mb-2">Full name</p>
+          <p className="text-sm text-gray-600 mb-1">Full name</p>
           <div className="flex gap-3">
             <input
               value={firstName}
@@ -127,7 +151,7 @@ style={{ backgroundImage: "url('/doodle-bg.png')" }}
 
         {/* Email */}
         <motion.div variants={item}>
-          <p className="text-sm text-gray-600 mb-2">Email</p>
+          <p className="text-sm text-gray-600 mb-1">Email</p>
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -167,7 +191,65 @@ style={{ backgroundImage: "url('/doodle-bg.png')" }}
             <p className="text-red-500 text-sm mt-1">{error}</p>
           )}
         </motion.div>
+          {/* Vehicle Info */}
+<motion.div variants={item}>
+  <p className="text-sm text-gray-600 mb-2">Vehicle Information</p>
 
+  <div className="space-y-3">
+
+    {/* Color */}
+    <input
+      value={vehicle.color}
+      onChange={(e) =>
+        setVehicle({ ...vehicle, color: e.target.value })
+      }
+      type="text"
+      placeholder="Vehicle Color"
+      className="w-full bg-gray-100 px-4 py-3 rounded-md border focus:ring-2 focus:ring-black outline-none"
+    />
+
+    {/* Plate */}
+    <input
+      value={vehicle.plate}
+      onChange={(e) =>
+        setVehicle({ ...vehicle, plate: e.target.value })
+      }
+      type="text"
+      placeholder="Vehicle Plate Number"
+      className="w-full bg-gray-100 px-4 py-3 rounded-md border focus:ring-2 focus:ring-black outline-none"
+    />
+
+    {/* Capacity + Type */}
+    <div className="flex gap-3">
+
+      {/* Capacity */}
+      <input
+        value={vehicle.capacity}
+        onChange={(e) =>
+          setVehicle({ ...vehicle, capacity: e.target.value })
+        }
+        type="number"
+        placeholder="Capacity"
+        className="w-1/2 bg-gray-100 px-4 py-3 rounded-md border focus:ring-2 focus:ring-black outline-none"
+      />
+
+      {/* Vehicle Type */}
+      <select
+        value={vehicle.vehicleType}
+        onChange={(e) =>
+          setVehicle({ ...vehicle, vehicleType: e.target.value })
+        }
+        className="w-1/2 bg-gray-100 px-4 py-3 rounded-md border focus:ring-2 focus:ring-black outline-none"
+      >
+        <option value="">Select Type</option>
+        <option value="car">Car</option>
+        <option value="bike">Bike</option>
+        <option value="autorikshaw">Auto Rikshaw</option>
+      </select>
+
+    </div>
+  </div>
+</motion.div>
         {/* Button */}
         <motion.button
           variants={item}
@@ -176,7 +258,7 @@ style={{ backgroundImage: "url('/doodle-bg.png')" }}
           disabled={password !== confirmPassword && confirmPassword !== ''}
           className="w-full bg-black text-white py-3 rounded-xl text-lg font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed transition"
         >
-          Create account
+          Create Captain Account
         </motion.button>
 
         {/* Footer */}

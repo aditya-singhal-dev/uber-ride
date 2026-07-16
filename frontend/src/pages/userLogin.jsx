@@ -2,15 +2,37 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 import { motion } from 'framer-motion';
+import userDataContext from '../context/userDataContext';
+import { useContext } from 'react';
+import axios from 'axios'
 
 const UserLogin = () => {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const navigate = useNavigate();
+  const [, setUser] = useContext(userDataContext)
+  
 
-  const submitHandler = (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
-    console.log({ email, password });
+    const userData = {
+      email,
+      password
+    };
+
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/login`, userData);
+
+      if (response.status === 200) {
+        const data = response.data;
+        localStorage.setItem('token', data.token);
+        setUser(data.user);
+        navigate('/Home');
+      }
+    } catch (err) {
+      console.error('Login failed:', err.response?.data || err.message);
+    }
+
     setEmail('');
     setPassword('');
   };
